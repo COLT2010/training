@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="トレ記録">
+<title>トレ記録</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{background:#0a0a14;color:#e2e8f0;font-family:'Hiragino Kaku Gothic ProN',sans-serif;min-height:100vh;padding-bottom:60px}
+button{font-family:inherit;cursor:pointer}
+input,select{font-family:inherit;outline:none}
+select option{background:#1e1e3f;color:#fff}
+#header{background:linear-gradient(90deg,#1e1e3f,#2d1b69);padding:14px 16px 10px;border-bottom:1px solid rgba(139,92,246,0.3);position:sticky;top:0;z-index:100}
+#header-sub{font-size:10px;color:#a78bfa;letter-spacing:3px;margin-bottom:2px}
+#header-row{display:flex;justify-content:space-between;align-items:center}
+#header-title{font-size:17px;font-weight:700;color:#fff}
+#kcal-badge{background:linear-gradient(135deg,#7c3aed,#4f46e5);padding:4px 11px;border-radius:20px;font-size:12px;font-weight:700;color:#fff}
+#timer-banner{display:none;border-bottom:1px solid rgba(139,92,246,0.4);padding:8px 16px}
+#timer-inner{display:flex;align-items:center;justify-content:space-between}
+#timer-label{font-size:11px;color:#a78bfa;margin-bottom:2px}
+#timer-num{font-size:30px;font-weight:900;letter-spacing:2px}
+#timer-bar-wrap{width:70px;height:5px;background:rgba(255,255,255,0.1);border-radius:3px;overflow:hidden;margin-bottom:6px}
+#timer-bar{height:100%;width:0%;background:linear-gradient(90deg,#7c3aed,#22c55e);transition:width 1s linear;border-radius:3px}
+#tabs{display:flex;background:rgba(255,255,255,0.04);margin:10px 10px 0;border-radius:12px;padding:3px;border:1px solid rgba(139,92,246,0.2)}
+.tab-btn{flex:1;padding:8px 0;border-radius:9px;font-size:10px;font-weight:700;color:#94a3b8;background:transparent;border:none}
+.tab-btn.active{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff}
+#content{padding:10px 10px 0}
+.card{background:rgba(255,255,255,0.04);border-radius:12px;padding:12px;border:1px solid rgba(139,92,246,0.2);margin-bottom:12px}
+.stitle{font-size:12px;color:#a78bfa;font-weight:700;margin-bottom:9px}
+.lbl{font-size:11px;color:#64748b;margin-bottom:3px;display:block}
+.inp{width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.12);border-radius:7px;color:#fff;padding:6px 9px;font-size:14px}
+.btn-pur{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:7px 18px;border-radius:9px;font-size:12px;font-weight:700;border:none}
+.btn-grn{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;padding:7px 16px;border-radius:9px;font-size:12px;font-weight:700;border:none}
+.btn-cyn{background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:#67e8f9;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:700}
+.ex-btn{padding:4px 9px;border-radius:18px;font-size:11px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;margin-bottom:5px}
+.ex-btn.sel{border-color:#7c3aed;background:rgba(124,58,237,0.3);color:#c4b5fd;font-weight:700}
+.log-row{background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.2);border-radius:11px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+.empty{text-align:center;padding:20px;color:#334155;font-size:12px;border:1px dashed rgba(255,255,255,0.07);border-radius:11px;margin-bottom:10px}
+.tag{padding:1px 6px;border-radius:6px;font-size:10px;font-weight:700;display:inline-block;margin:2px 2px 0 0}
+.err{background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.4);border-radius:7px;padding:7px 10px;font-size:11px;color:#fca5a5;margin-bottom:8px}
+.step-card{margin-bottom:7px;border-radius:11px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.03);padding:9px 11px}
+.step-card.on{border-color:#7c3aed;background:rgba(124,58,237,0.15)}
+.step-num{background:rgba(139,92,246,0.3);color:#a78bfa;border-radius:5px;padding:1px 6px;font-size:10px;font-weight:700;margin-right:6px}
+.bar-wrap{height:7px;background:rgba(255,255,255,0.07);border-radius:8px;overflow:hidden;margin-top:4px}
+.bar{height:100%;border-radius:8px;transition:width 0.6s}
+.row2{display:flex;gap:8px}
+.row2>*{flex:1}
+.cform{background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:11px;padding:12px;margin-bottom:12px}
+.barchart{display:flex;align-items:flex-end;gap:5px;height:110px;padding-bottom:18px}
+.barcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.barval{font-size:8px;font-weight:700}
+.barrect{width:100%;border-radius:3px 3px 0 0}
+.barday{font-size:8px;color:#64748b}
+</style>
+</head>
+<body>
+<div id="header">
+  <div id="header-sub">TRAINING MANAGER</div>
+  <div id="header-row">
+    <div id="header-title">💪 亮介のトレ記録</div>
+    <div id="kcal-badge">🔥 0 kcal</div>
+  </div>
+</div>
+
+<div id="timer-banner">
+  <div id="timer-inner">
+    <div>
+      <div id="timer-label">⏱ インターバル</div>
+      <div id="timer-num" style="color:#fff">00:00</div>
+    </div>
+    <div style="text-align:right">
+      <div id="timer-bar-wrap"><div id="timer-bar"></div></div>
+      <button onclick="stopTimer()" style="background:rgba(239,68,68,0.2);border:1px solid rgba(239,68,68,0.4);color:#f87171;border-radius:7px;padding:3px 10px;font-size:11px">停止</button>
+    </div>
+  </div>
+</div>
+
+<div id="tabs">
+  <button class="tab-btn active" onclick="setTab('preset')">⚡ メニュー</button>
+  <button class="tab-btn" onclick="setTab('record')">📝 記録</button>
+  <button class="tab-btn" onclick="setTab('effect')">💪 効果</button>
+  <button class="tab-btn" onclick="setTab('history')">📅 履歴</button>
+  <button class="tab-btn" onclick="setTab('graph')">📊 グラフ</button>
+</div>
+
+<div id="content"></div>
+
+<script>
+var SK="trlog_v5",CK="trcustom_v5",BW=73;
+
+var BASE=[
+  {id:"bench",name:"ベンチプレス",muscles:["胸"],met:5.0,unit:"kg"},
+  {id:"squat",name:"スクワット",muscles:["脚","お尻"],met:5.0,unit:"kg"},
+  {id:"deadlift",name:"デッドリフト",muscles:["背中","脚","お尻"],met:6.0,unit:"kg"},
+  {id:"pullup",name:"懸垂",muscles:["背中","腕"],met:8.0,unit:"rep"},
+  {id:"scapula",name:"懸垂スキャプラ",muscles:["背中","肩"],met:4.0,unit:"rep"},
+  {id:"neg_pullup",name:"ネガティブ懸垂",muscles:["背中","腕"],met:5.0,unit:"rep"},
+  {id:"leg_raise",name:"レッグレイズ（懸垂機）",muscles:["腹"],met:5.0,unit:"rep"},
+  {id:"leg_press",name:"レッグプレス",muscles:["脚","お尻"],met:5.0,unit:"kg"},
+  {id:"burpee",name:"バーピー",muscles:["全身","腹","脚"],met:10.0,unit:"sec"},
+  {id:"burpee_nj",name:"バーピー（ジャンプなし）",muscles:["全身","腹","脚"],met:8.0,unit:"sec"},
+  {id:"jj",name:"ジャンピングジャック",muscles:["脚","肩"],met:8.0,unit:"sec"},
+  {id:"jackknife",name:"スタンディングジャックナイフ",muscles:["腹"],met:5.0,unit:"rep"},
+  {id:"shoulder",name:"ショルダープレス",muscles:["肩","腕"],met:4.5,unit:"kg"},
+  {id:"row",name:"ベントオーバーロウ",muscles:["背中","腕"],met:5.0,unit:"kg"},
+  {id:"curl",name:"バイセップカール",muscles:["腕"],met:3.5,unit:"kg"},
+  {id:"plank",name:"プランク",muscles:["腹"],met:4.0,unit:"sec"},
+  {id:"bridge",name:"下向きブリッジ（上下肢挙上）",muscles:["腹","背中","お尻"],met:3.5,unit:"sec"},
+  {id:"crunch",name:"クランチ",muscles:["腹"],met:4.0,unit:"rep"},
+  {id:"lunge",name:"ランジ",muscles:["脚","お尻"],met:4.5,unit:"rep"},
+  {id:"pushup",name:"腕立て（ノーマル）",muscles:["胸","腕","肩"],met:5.0,unit:"rep"},
+  {id:"pushup_low",name:"腕立て（胸筋下部）",muscles:["胸","腕"],met:5.0,unit:"rep"},
+  {id:"walking",name:"ウォーキング",muscles:["脚"],met:3.5,unit:"min"},
+  {id:"running",name:"ランニング",muscles:["脚"],met:9.0,unit:"min"}
+];
+
+var PRESET_STEPS=[
+  {exId:"scapula",label:"懸垂スキャプラ",reps:5,sets:1,weight:0,sec:0,note:""},
+  {exId:"pullup",label:"懸垂",reps:11,sets:3,weight:0,sec:0,note:"レッグレイズと交互"},
+  {exId:"leg_raise",label:"レッグレイズ（懸垂機・背中あり）",reps:15,sets:3,weight:0,sec:0,note:"懸垂と交互"},
+  {exId:"neg_pullup",label:"ネガティブ懸垂（4秒下ろし）",reps:4,sets:1,weight:0,sec:0,note:"4秒ゆっくり"},
+  {exId:"leg_press",label:"レッグプレス",reps:15,sets:3,weight:45,sec:0,note:""},
+  {exId:"burpee",label:"バーピー",reps:1,sets:2,weight:0,sec:45,note:"45秒×2"},
+  {exId:"burpee_nj",label:"バーピー（ジャンプなし）",reps:1,sets:1,weight:0,sec:45,note:"45秒×1"},
+  {exId:"jj",label:"ジャンピングジャック",reps:1,sets:1,weight:0,sec:45,note:"45秒×1"},
+  {exId:"jackknife",label:"スタンディングジャックナイフ",reps:40,sets:1,weight:0,sec:0,note:""}
+];
+
+var MUSCLES=["胸","背中","腕","肩","腹","脚","お尻","全身"];
+var MC={胸:"#ef4444",背中:"#f97316",腕:"#eab308",肩:"#22c55e",腹:"#06b6d4",脚:"#6366f1",お尻:"#ec4899",全身:"#a78bfa"};
+var ME={胸:"💪",背中:"🏋️",腕:"💪",肩:"🔝",腹:"🎯",脚:"🦵",お尻:"🍑",全身:"⚡"};
+var UNITS=["回","kg×回","秒","秒×セット","分"];
+
+var tab="preset";
+var custom=[];
+var logData={};
+var sel=null;
+var fSets="3",fReps="10",fWt="0",fMins="30",fSecs="45";
+var ferr="";
+var showCForm=false;
+var cName="",cMet="5",cUnit="回",cMus=[],cErr="";
+var activeStep=null;
+var presetDone=false;
+var vDate="";
+var timerSec=0,timerMax=0,timerLabel="",timerRunning=false;
+var timerIv=null;
+
+function todayKey(){return new Date().toISOString().slice(0,10);}
+function fmtDate(k){var p=k.split("-");return p[0]+"年"+parseInt(p[1])+"月"+parseInt(p[2])+"日";}
+function pad(n){return n<10?"0"+n:String(n);}
+function fmtTime(s){return pad(Math.floor(s/60))+":"+pad(s%60);}
+function vInt(v,mn,mx){var n=parseInt(v,10);return isFinite(n)&&n>=mn&&n<=mx?n:null;}
+
+function allExs(){return BASE.concat(custom);}
+function validIds(){var s=new Set();allExs().forEach(function(e){s.add(e.id);});return s;}
+
+function stepCal(st){
+  var ex=allExs().find(function(e){return e.id===st.exId;});
+  if(!ex)return 0;
+  if(st.sec>0)return Math.round(ex.met*BW*(st.sec*st.sets)/3600);
+  return Math.round((st.weight||BW)*(st.reps||0)*(st.sets||1)*ex.met*0.0012);
+}
+
+function loadStorage(){
+  try{
+    var c=JSON.parse(localStorage.getItem(CK)||"[]");
+    if(Array.isArray(c))custom=c.filter(function(e){return e&&typeof e.id==="string"&&e.id.indexOf("custom_")===0&&typeof e.name==="string"&&e.name.length>0&&e.name.length<50;});
+  }catch(e){}
+  try{
+    var ids=validIds();
+    var d=JSON.parse(localStorage.getItem(SK)||"{}");
+    if(typeof d==="object"&&!Array.isArray(d)){
+      Object.keys(d).forEach(function(k){
+        if(/^\d{4}-\d{2}-\d{2}$/.test(k)&&Array.isArray(d[k])){
+          logData[k]=d[k].filter(function(e){
+            return e&&typeof e.id==="number"&&typeof e.name==="string"&&ids.has(e.exId)&&typeof e.calories==="number"&&e.calories>=0&&e.calories<99999&&Array.isArray(e.muscles)&&typeof e.effect==="number";
+          });
+        }
+      });
+    }
+  }catch(e){}
+  vDate=todayKey();
+}
+
+function saveStorage(){
+  try{localStorage.setItem(SK,JSON.stringify(logData));}catch(e){}
+  try{localStorage.setItem(CK,JSON.stringify(custom));}catch(e){}
+}
+
+function todayLog(){return logData[todayKey()]||[];}
+function totalCal(){return todayLog().reduce(function(s,e){return s+e.calories;},0);}
+
+function setTab(t){
+  tab=t;
+  document.querySelectorAll(".tab-btn").forEach(function(b){b.classList.remove("active");});
+  var idx={preset:0,record:1,effect:2,history:3,graph:4}[t];
+  document.querySelectorAll(".tab-btn")[idx].classList.add("active");
+  renderContent();
+}
+
+function startTimer(sec,label){
+  clearInterval(timerIv);
+  timerSec=sec;timerMax=sec;timerLabel=label;timerRunning=true;
+  updateTimerUI();
+  document.getElementById("timer-banner").style.display="block";
+  timerIv=setInterval(function(){
+    timerSec--;
+    if(timerSec<=0){clearInterval(timerIv);timerRunning=false;timerSec=0;}
+    updateTimerUI();
+  },1000);
+}
+
+function updateTimerUI(){
+  var pct=timerMax>0?Math.round(((timerMax-timerSec)/timerMax)*100):0;
+  var col=timerSec===0?"#22c55e":timerSec<10?"#ef4444":"#fff";
+  document.getElementById("timer-num").textContent=fmtTime(timerSec);
+  document.getElementById("timer-num").style.color=col;
+  document.getElementById("timer-bar").style.width=pct+"%";
+  document.getElementById("timer-label").textContent=timerSec===0?"✅ 完了！":"⏱ "+timerLabel;
+  if(timerSec===0){document.getElementById("timer-banner").style.background="rgba(34,197,94,0.2)";}
+  else{document.getElementById("timer-banner").style.background="rgba(124,58,237,0.25)";}
+}
+
+function stopTimer(){
+  clearInterval(timerIv);timerRunning=false;timerSec=0;
+  document.getElementById("timer-banner").style.display="none";
+}
+
+function tagHTML(m){
+  var c=MC[m]||"#888";
+  return '<span class="tag" style="background:'+c+'33;color:'+c+';border:1px solid '+c+'55">'+( ME[m]||"🏋️")+" "+m+"</span>";
+}
+
+function logRowHTML(e,removable){
+  var tags=e.muscles.map(tagHTML).join("");
+  var removeBtn=removable?'<button onclick="removeEntry('+e.id+')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:7px;padding:2px 7px;font-size:10px;margin-top:4px">削除</button>':"";
+  return '<div class="log-row">'
+    +'<div style="flex:1">'
+    +'<div style="font-weight:700;font-size:12px;margin-bottom:2px">'+e.name+'</div>'
+    +'<div style="font-size:11px;color:#64748b">'+e.detail+'</div>'
+    +'<div style="margin-top:4px">'+tags+'</div>'
+    +'</div>'
+    +'<div style="text-align:right;flex-shrink:0;margin-left:8px">'
+    +'<div style="color:#fbbf24;font-weight:700;font-size:13px">'+e.calories+'</div>'
+    +'<div style="font-size:10px;color:#64748b">kcal</div>'
+    +removeBtn
+    +'</div>'
+    +'</div>';
+}
+
+function renderContent(){
+  document.getElementById("kcal-badge").textContent="🔥 "+totalCal()+" kcal";
+  var html="";
+
+  if(tab==="preset"){
+    var presetTotal=PRESET_STEPS.reduce(function(s,st){return s+stepCal(st);},0);
+    html+='<div class="card" style="border-color:rgba(167,139,250,0.4)">'
+      +'<div style="font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:2px">⚡ 時間ない時用トレーニング2（週3回）</div>'
+      +'<div style="font-size:10px;color:#64748b;margin-bottom:10px">インターバル目安: 60秒</div>';
+
+    PRESET_STEPS.forEach(function(st,i){
+      var ex=allExs().find(function(e){return e.id===st.exId;});
+      var cal=stepCal(st);
+      var isA=activeStep===i;
+      var detail=st.sec>0?(st.sec+"秒 × "+st.sets+"セット"):st.weight>0?(st.weight+"kg × "+st.reps+"回 × "+st.sets+"セット"):(st.reps+"回 × "+st.sets+"セット");
+      var tags=ex?ex.muscles.map(tagHTML).join(""):"";
+      html+='<div class="step-card'+(isA?" on":"")+'">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start">'
+        +'<div style="flex:1">'
+        +'<div style="margin-bottom:3px"><span class="step-num">'+(i+1)+'</span><span style="font-size:12px;font-weight:700">'+st.label+'</span></div>'
+        +'<div style="font-size:10px;color:#64748b;margin-left:22px">'+detail+(st.note?' <span style="color:#a78bfa">— '+st.note+'</span>':"")+'</div>'
+        +'<div style="margin-top:4px;margin-left:22px">'+tags+'</div>'
+        +'</div>'
+        +'<div style="text-align:right;flex-shrink:0;margin-left:6px">'
+        +'<div style="color:#fbbf24;font-weight:700;font-size:11px;margin-bottom:4px">'+cal+' kcal</div>'
+        +'<button onclick="toggleStep('+i+')" style="display:block;margin-bottom:4px;background:'+(isA?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.06)")+';border:1px solid '+(isA?"#7c3aed":"rgba(255,255,255,0.15)")+';color:'+(isA?"#c4b5fd":"#94a3b8")+';border-radius:7px;padding:2px 9px;font-size:10px;font-weight:700;width:100%">'+(isA?"✓ 実施中":"開始")+'</button>'
+        +'<button onclick="startTimer(60,\'インターバル (種目'+(i+1)+'後)\')" style="display:block;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:#67e8f9;border-radius:7px;padding:2px 9px;font-size:10px;width:100%">⏱ 休憩</button>'
+        +'</div>'
+        +'</div>'
+        +'</div>';
+    });
+
+    html+='<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;margin-top:3px;display:flex;justify-content:space-between;align-items:center">'
+      +'<div style="font-size:12px;color:#fbbf24;font-weight:700">🔥 '+presetTotal+' kcal</div>';
+    if(!presetDone){
+      html+='<button class="btn-grn" onclick="finishPreset()">✅ 完了・記録する</button>';
+    }else{
+      html+='<div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#86efac;border-radius:9px;padding:6px 12px;font-size:11px;font-weight:700">✅ 記録済み！</div>';
+    }
+    html+='</div></div>';
+
+    html+='<div class="card"><div class="stitle">⏱ カスタムインターバル</div><div style="display:flex;gap:7px;flex-wrap:wrap">';
+    [30,45,60,90,120].forEach(function(s){
+      html+='<button class="btn-cyn" onclick="startTimer('+s+',\'インターバル '+s+'秒\')">'+s+'秒</button>';
+    });
+    html+='</div></div>';
+  }
+
+  if(tab==="record"){
+    html+='<div class="card">'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">'
+      +'<div class="stitle" style="margin:0">＋ エクササイズを追加</div>'
+      +'<button onclick="toggleCForm()" style="background:rgba(167,139,250,0.15);border:1px solid rgba(167,139,250,0.3);color:#c4b5fd;border-radius:7px;padding:3px 9px;font-size:10px;font-weight:700">＋ 種目を作る</button>'
+      +'</div>';
+
+    if(showCForm){
+      var musButtons=MUSCLES.map(function(m){
+        var on=cMus.indexOf(m)>=0;
+        return '<button onclick="toggleCMus(\''+m+'\')" style="padding:3px 9px;border-radius:18px;font-size:10px;font-weight:700;border:1px solid '+(on?MC[m]:"rgba(255,255,255,0.1)")+';background:'+(on?MC[m]+"33":"rgba(255,255,255,0.04)")+';color:'+(on?MC[m]:"#64748b")+';margin:2px">'+ME[m]+" "+m+'</button>';
+      }).join("");
+      html+='<div class="cform">'
+        +'<div style="font-size:11px;font-weight:700;color:#c4b5fd;margin-bottom:9px">🆕 オリジナル種目</div>'
+        +'<div style="margin-bottom:7px"><label class="lbl">種目名</label><input class="inp" type="text" maxlength="30" placeholder="例: ケトルベルスイング" value="'+cName+'" oninput="cName=this.value"></div>'
+        +'<div class="row2" style="margin-bottom:7px">'
+        +'<div><label class="lbl">単位</label><select class="inp" onchange="cUnit=this.value">'
+        +UNITS.map(function(u){return '<option value="'+u+'"'+(cUnit===u?" selected":"")+'>'+u+'</option>';}).join("")
+        +'</select></div>'
+        +'<div><label class="lbl">MET強度(1-25)</label><input class="inp" type="number" min="1" max="25" step="0.5" value="'+cMet+'" oninput="cMet=this.value"></div>'
+        +'</div>'
+        +'<div style="margin-bottom:9px"><label class="lbl">鍛える部位</label><div style="display:flex;flex-wrap:wrap">'+musButtons+'</div></div>'
+        +(cErr?'<div class="err">⚠️ '+cErr+'</div>':"")
+        +'<div style="display:flex;gap:7px;justify-content:flex-end">'
+        +'<button onclick="cancelCForm()" style="background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:#94a3b8;border-radius:7px;padding:5px 12px;font-size:11px">キャンセル</button>'
+        +'<button class="btn-pur" onclick="saveCForm()" style="padding:5px 14px;font-size:11px">保存</button>'
+        +'</div></div>';
+    }
+
+    html+='<div style="font-size:10px;color:#475569;margin-bottom:5px">標準種目</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:9px">';
+    BASE.forEach(function(ex){
+      html+='<button class="ex-btn'+(sel===ex.id?" sel":"")+'" onclick="selEx(\''+ex.id+'\')">'+ex.name+'</button>';
+    });
+    html+='</div>';
+
+    if(custom.length>0){
+      html+='<div style="font-size:10px;color:#a78bfa;margin-bottom:5px">オリジナル種目</div>'
+        +'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:9px">';
+      custom.forEach(function(ex){
+        html+='<div style="display:flex;align-items:center;gap:2px">'
+          +'<button class="ex-btn'+(sel===ex.id?" sel":"")+'" style="border-radius:18px 0 0 18px;'+(sel===ex.id?"border-color:#7c3aed;background:rgba(124,58,237,0.3);color:#c4b5fd;":"border-color:rgba(167,139,250,0.3);background:rgba(167,139,250,0.08);color:#a78bfa;")+'" onclick="selEx(\''+ex.id+'\')">'+ex.name+'</button>'
+          +'<button onclick="delCustom(\''+ex.id+'\')" style="padding:4px 6px;border-radius:0 18px 18px 0;font-size:10px;border:1px solid rgba(239,68,68,0.3);border-left:none;background:rgba(239,68,68,0.1);color:#f87171">✕</button>'
+          +'</div>';
+      });
+      html+='</div>';
+    }
+
+    var selEx2=allExs().find(function(e){return e.id===sel;});
+    if(selEx2){
+      var isSec=selEx2.unit==="sec";
+      var isMin=selEx2.unit==="min";
+      var isKg=selEx2.unit==="kg";
+      html+='<div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:10px">'
+        +'<div style="font-size:11px;color:#c4b5fd;margin-bottom:9px;font-weight:700">'+selEx2.name+'</div>'
+        +'<div class="row2" style="margin-bottom:10px">';
+      if(isKg){html+='<div><label class="lbl">重量 (kg)</label><input class="inp" type="number" min="0" max="500" value="'+fWt+'" oninput="fWt=this.value"></div>';}
+      if(isMin){html+='<div><label class="lbl">時間 (分)</label><input class="inp" type="number" min="1" max="600" value="'+fMins+'" oninput="fMins=this.value"></div>';}
+      if(isSec){
+        html+='<div><label class="lbl">秒数</label><input class="inp" type="number" min="1" max="600" value="'+fSecs+'" oninput="fSecs=this.value"></div>';
+        html+='<div><label class="lbl">セット数</label><input class="inp" type="number" min="1" max="20" value="'+fSets+'" oninput="fSets=this.value"></div>';
+      }
+      if(!isMin&&!isSec){
+        html+='<div><label class="lbl">回数</label><input class="inp" type="number" min="1" max="500" value="'+fReps+'" oninput="fReps=this.value"></div>';
+        html+='<div><label class="lbl">セット数</label><input class="inp" type="number" min="1" max="20" value="'+fSets+'" oninput="fSets=this.value"></div>';
+      }
+      html+='</div>';
+      if(ferr){html+='<div class="err">⚠️ '+ferr+'</div>';}
+      html+='<div style="display:flex;justify-content:flex-end"><button class="btn-pur" onclick="addEntry()">追加 ✓</button></div></div>';
+    }
+    html+='</div>';
+
+    var tlog=todayLog();
+    html+='<div style="font-size:11px;color:#64748b;margin-bottom:7px">今日のログ'+(tlog.length>0?" ("+tlog.length+"種目)":"")+'</div>';
+    if(tlog.length===0){html+='<div class="empty">まだ記録がありません</div>';}
+    tlog.forEach(function(e){html+=logRowHTML(e,true);});
+    if(tlog.length>0){
+      var tc=totalCal();
+      html+='<div style="background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(79,70,229,0.2));border:1px solid rgba(139,92,246,0.4);border-radius:12px;padding:12px;margin-top:7px;display:flex;justify-content:space-between;align-items:center">'
+        +'<div><div style="font-size:10px;color:#a78bfa">本日の合計消費</div><div style="font-size:22px;font-weight:900;color:#fbbf24">'+tc+' <span style="font-size:11px;color:#94a3b8">kcal</span></div></div>'
+        +'<div style="text-align:right;font-size:10px;color:#64748b"><div>体重 73kg 基準</div><div style="color:#94a3b8;margin-top:2px">💧 '+Math.round(tc*1.5)+' ml目安</div></div>'
+        +'</div>';
+    }
+  }
+
+  if(tab==="effect"){
+    var tlog2=todayLog();
+    var mEff={};
+    MUSCLES.forEach(function(m){mEff[m]=0;});
+    tlog2.forEach(function(e){e.muscles.forEach(function(m){mEff[m]=Math.min(100,(mEff[m]||0)+e.effect);});});
+    html+='<div style="font-size:11px;color:#64748b;margin-bottom:11px">今日の部位別負荷</div>';
+    MUSCLES.forEach(function(m){
+      var val=mEff[m]||0;
+      var lbl=val>60?"🔥 高負荷":val>30?"⚡ 中負荷":val>0?"✅ 軽負荷":"—";
+      var col=val>60?"#ef4444":val>30?"#fbbf24":"#64748b";
+      html+='<div style="margin-bottom:11px">'
+        +'<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+        +'<span style="font-size:12px;font-weight:700">'+ME[m]+" "+m+'</span>'
+        +'<span style="font-size:10px;font-weight:700;color:'+col+'">'+lbl+'</span>'
+        +'</div>'
+        +'<div class="bar-wrap"><div class="bar" style="width:'+val+'%;background:linear-gradient(90deg,'+MC[m]+'99,'+MC[m]+')"></div></div>'
+        +'</div>';
+    });
+    if(tlog2.length===0){html+='<div class="empty">記録を追加すると部位別負荷が表示されます</div>';}
+  }
+
+  if(tab==="history"){
+    var hDates=Object.keys(logData).filter(function(k){return (logData[k]||[]).length>0;}).sort(function(a,b){return b>a?1:-1;});
+    if(hDates.length===0){html+='<div class="empty">まだ記録がありません</div>';}
+    html+='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px">';
+    hDates.forEach(function(d){
+      var isV=vDate===d;
+      html+='<button onclick="setVDate(\''+d+'\')" style="padding:4px 11px;border-radius:18px;font-size:11px;font-weight:700;border:1px solid '+(isV?"#7c3aed":"rgba(255,255,255,0.1)")+';background:'+(isV?"rgba(124,58,237,0.3)":"rgba(255,255,255,0.04)")+';color:'+(isV?"#c4b5fd":"#94a3b8")+'">'+(d===todayKey()?"今日":fmtDate(d))+'</button>';
+    });
+    html+='</div>';
+    if(vDate){
+      var vlog=logData[vDate]||[];
+      html+='<div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:9px">📅 '+(vDate===todayKey()?"今日":fmtDate(vDate))+'</div>';
+      if(vlog.length===0){html+='<div class="empty">この日の記録はありません</div>';}
+      else{
+        vlog.forEach(function(e){html+=logRowHTML(e,false);});
+        var vCal=vlog.reduce(function(s,e){return s+e.calories;},0);
+        html+='<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:11px;padding:9px 13px;margin-top:7px;display:flex;justify-content:space-between">'
+          +'<span style="font-size:12px;color:#94a3b8">合計消費</span>'
+          +'<span style="font-size:13px;font-weight:700;color:#fbbf24">🔥 '+vCal+' kcal</span>'
+          +'</div>';
+      }
+    }
+  }
+
+  if(tab==="graph"){
+    var wData=[];
+    for(var i=6;i>=0;i--){
+      var d=new Date();d.setDate(d.getDate()-i);
+      var k=d.toISOString().slice(0,10);
+      var lg=logData[k]||[];
+      wData.push({day:(d.getMonth()+1)+"/"+(d.getDate()),cal:lg.reduce(function(s,e){return s+e.calories;},0),trained:lg.length>0});
+    }
+    var maxW=Math.max.apply(null,wData.map(function(d){return d.cal;}));
+    if(maxW<1)maxW=1;
+
+    html+='<div class="card"><div class="stitle">📅 直近7日間の消費カロリー</div><div class="barchart">';
+    wData.forEach(function(d){
+      var h=d.cal>0?Math.max(8,Math.round((d.cal/maxW)*85)):3;
+      var col=d.trained?"linear-gradient(180deg,#7c3aed,#4f46e5)":"rgba(255,255,255,0.08)";
+      html+='<div class="barcol">'
+        +'<div class="barval" style="color:#fbbf24">'+(d.cal>0?d.cal:"")+'</div>'
+        +'<div class="barrect" style="height:'+h+'px;background:'+col+'"></div>'
+        +'<div class="barday">'+d.day+'</div>'
+        +'</div>';
+    });
+    html+='</div></div>';
+
+    var mMap={};
+    Object.keys(logData).forEach(function(k){
+      var m=k.slice(0,7);
+      if(!mMap[m])mMap[m]={sessions:0,calories:0};
+      var lg2=logData[k]||[];
+      if(lg2.length>0){mMap[m].sessions++;mMap[m].calories+=lg2.reduce(function(s,e){return s+e.calories;},0);}
+    });
+    var mKeys=Object.keys(mMap).sort();
+    if(mKeys.length>0){
+      var mData=mKeys.map(function(k){return {month:k.slice(5)+"月",sessions:mMap[k].sessions,calories:mMap[k].calories};});
+      var maxS=Math.max.apply(null,mData.map(function(d){return d.sessions;}));
+      var maxMC=Math.max.apply(null,mData.map(function(d){return d.calories;}));
+      if(maxS<1)maxS=1;if(maxMC<1)maxMC=1;
+
+      html+='<div class="card"><div class="stitle">📈 月別セッション数</div><div class="barchart" style="height:90px">';
+      mData.forEach(function(d){
+        var h=Math.max(5,Math.round((d.sessions/maxS)*65));
+        html+='<div class="barcol"><div class="barval" style="color:#c4b5fd">'+d.sessions+'</div><div class="barrect" style="height:'+h+'px;background:linear-gradient(180deg,#7c3aed,#4f46e5)"></div><div class="barday">'+d.month+'</div></div>';
+      });
+      html+='</div></div>';
+
+      html+='<div class="card"><div class="stitle">🔥 月別消費カロリー</div><div class="barchart" style="height:90px">';
+      mData.forEach(function(d){
+        var h=Math.max(5,Math.round((d.calories/maxMC)*65));
+        html+='<div class="barcol"><div class="barval" style="color:#fbbf24">'+d.calories+'</div><div class="barrect" style="height:'+h+'px;background:linear-gradient(180deg,#f59e0b,#d97706)"></div><div class="barday">'+d.month+'</div></div>';
+      });
+      html+='</div></div>';
+    }else{
+      html+='<div class="empty">記録を追加するとグラフが表示されます</div>';
+    }
+  }
+
+  document.getElementById("content").innerHTML=html;
+}
+
+function toggleStep(i){activeStep=activeStep===i?null:i;renderContent();}
+
+function finishPreset(){
+  var cal=PRESET_STEPS.reduce(function(s,st){return s+stepCal(st);},0);
+  var entry={id:Date.now(),exId:"pullup",name:"⚡ 時間ない時用トレーニング2",muscles:["背中","腕","腹","脚","全身"],calories:cal,effect:35,detail:PRESET_STEPS.length+"種目 合計"};
+  var k=todayKey();
+  if(!logData[k])logData[k]=[];
+  logData[k].push(entry);
+  presetDone=true;activeStep=null;
+  saveStorage();renderContent();
+}
+
+function selEx(id){sel=sel===id?null:id;ferr="";renderContent();}
+
+function addEntry(){
+  ferr="";
+  var ex=allExs().find(function(e){return e.id===sel;});
+  if(!ex){ferr="種目を選んでください";renderContent();return;}
+  var cal,detail,rN,sN,wN,mN,scN;
+  if(ex.unit==="min"){
+    mN=vInt(fMins,1,600);if(!mN){ferr="1〜600分で入力してください";renderContent();return;}
+    cal=Math.round(ex.met*BW*mN/60);detail=mN+"分";
+  }else if(ex.unit==="sec"){
+    scN=vInt(fSecs,1,600);sN=vInt(fSets,1,20);
+    if(!scN){ferr="1〜600秒で入力してください";renderContent();return;}
+    if(!sN){ferr="1〜20セット";renderContent();return;}
+    cal=Math.round(ex.met*BW*(scN*sN)/3600);detail=scN+"秒×"+sN+"セット";
+  }else{
+    rN=vInt(fReps,1,500);sN=vInt(fSets,1,20);
+    if(!rN){ferr="1〜500回で入力してください";renderContent();return;}
+    if(!sN){ferr="1〜20セット";renderContent();return;}
+    if(ex.unit==="kg"){
+      wN=vInt(fWt,0,500);if(wN===null){ferr="0〜500kgで入力してください";renderContent();return;}
+      cal=Math.round((wN||BW)*rN*sN*ex.met*0.0012);
+      detail=wN>0?(wN+"kg × "+rN+"回 × "+sN+"セット"):(rN+"回 × "+sN+"セット");
+    }else{
+      cal=Math.round(BW*rN*sN*ex.met*0.0012);detail=rN+"回 × "+sN+"セット";
+    }
+  }
+  var eff=Math.min(40,Math.round(((rN||1)*(sN||1))/3));
+  var entry={id:Date.now(),exId:ex.id,name:ex.name,muscles:ex.muscles,calories:cal,effect:eff,detail:detail};
+  var k=todayKey();
+  if(!logData[k])logData[k]=[];
+  logData[k].push(entry);
+  sel=null;
+  saveStorage();renderContent();
+}
+
+function removeEntry(id){
+  var k=todayKey();
+  if(logData[k])logData[k]=logData[k].filter(function(e){return e.id!==id;});
+  saveStorage();renderContent();
+}
+
+function toggleCForm(){showCForm=!showCForm;renderContent();}
+function cancelCForm(){showCForm=false;cErr="";renderContent();}
+function toggleCMus(m){
+  var idx=cMus.indexOf(m);
+  if(idx>=0)cMus.splice(idx,1);else cMus.push(m);
+  renderContent();
+}
+
+function saveCForm(){
+  cErr="";
+  var name=cName.trim();
+  if(!name){cErr="種目名を入力してください";renderContent();return;}
+  if(name.length>30){cErr="30文字以内";renderContent();return;}
+  var met=parseFloat(cMet);
+  if(!isFinite(met)||met<1||met>25){cErr="運動強度は1〜25で入力してください";renderContent();return;}
+  if(cMus.length===0){cErr="部位を1つ以上選んでください";renderContent();return;}
+  custom.push({id:"custom_"+Date.now(),name:name,muscles:cMus.slice(),met:met,unit:cUnit,isCustom:true});
+  cName="";cMet="5";cUnit="回";cMus=[];cErr="";showCForm=false;
+  saveStorage();renderContent();
+}
+
+function delCustom(id){
+  custom=custom.filter(function(e){return e.id!==id;});
+  if(sel===id)sel=null;
+  saveStorage();renderContent();
+}
+
+function setVDate(d){vDate=d;renderContent();}
+
+loadStorage();
+renderContent();
+</script>
+
+</body>
+</html>
