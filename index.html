@@ -146,6 +146,7 @@ var showCForm=false;
 var cName="",cMet="5",cUnit="回",cMus=[],cErr="";
 var activeStep=null;
 var presetDone=false;
+var presetDate="";
 var vDate="";
 var timerSec=0,timerMax=0,timerLabel="",timerRunning=false;
 var timerIv=null;
@@ -208,6 +209,7 @@ function loadStorage(){
   }catch(e){}
   vDate=todayKey();
   recordDate=todayKey();
+  presetDate=todayKey();
 }
 
 function saveStorage(){
@@ -282,6 +284,16 @@ function renderContent(){
 
   if(tab==="preset"){
     var presetTotal=PRESET_STEPS.reduce(function(s,st){return s+stepCal(st);},0);
+    var presetIsToday=presetDate===todayKey();
+    html+='<div class="card" style="border-color:rgba(251,146,60,0.3);margin-bottom:10px">'
+      +'<div class="stitle">📅 記録する日付</div>'
+      +'<div style="display:flex;gap:8px;align-items:center">'
+      +'<input type="date" class="date-inp" value="'+presetDate+'" onchange="setPresetDate(this.value)" style="flex:1">'
+      +'<button onclick="setPresetDate(\''+todayKey()+'\')" style="background:'+(presetIsToday?"rgba(34,197,94,0.2)":"rgba(255,255,255,0.06)")+';border:1px solid '+(presetIsToday?"rgba(34,197,94,0.4)":"rgba(255,255,255,0.1)")+';color:'+(presetIsToday?"#86efac":"#94a3b8")+';border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700">今日</button>'
+      +'</div>'
+      +(presetIsToday?'':'<div style="font-size:10px;color:#fb923c;margin-top:6px">⚠️ 過去の日付に記録: '+fmtDate(presetDate)+'</div>')
+      +'</div>';
+
     html+='<div class="card" style="border-color:rgba(167,139,250,0.4)">'
       +'<div style="font-size:12px;font-weight:700;color:#c4b5fd;margin-bottom:2px">⚡ 時間ない時用トレーニング2（週3回）</div>'
       +'<div style="font-size:10px;color:#64748b;margin-bottom:10px">インターバル目安: 60秒</div>';
@@ -311,7 +323,10 @@ function renderContent(){
     if(!presetDone){
       html+='<button class="btn-grn" onclick="finishPreset()">✅ 完了・記録する</button>';
     }else{
-      html+='<div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#86efac;border-radius:9px;padding:6px 12px;font-size:11px;font-weight:700">✅ 記録済み！</div>';
+      html+='<div style="display:flex;gap:8px;align-items:center">'
+        +'<div style="background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#86efac;border-radius:9px;padding:6px 12px;font-size:11px;font-weight:700">✅ 記録済み！</div>'
+        +'<button onclick="cancelPreset()" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:9px;padding:6px 12px;font-size:11px;font-weight:700">🗑 取り消し</button>'
+        +'</div>';
     }
     html+='</div></div>';
 
@@ -543,11 +558,26 @@ function toggleStep(i){activeStep=activeStep===i?null:i;renderContent();}
 function finishPreset(){
   var cal=PRESET_STEPS.reduce(function(s,st){return s+stepCal(st);},0);
   var entry={id:Date.now(),exId:"pullup",name:"⚡ 時間ない時用トレーニング2",muscles:["背中","腕","腹","脚","全身"],calories:cal,effect:35,detail:PRESET_STEPS.length+"種目 合計"};
-  var k=todayKey();
-  if(!logData[k])logData[k]=[];
-  logData[k].push(entry);
+  if(!logData[presetDate])logData[presetDate]=[];
+  logData[presetDate].push(entry);
   presetDone=true;activeStep=null;
   saveStorage();renderContent();
+}
+
+function cancelPreset(){
+  if(!logData[presetDate])return;
+  logData[presetDate]=logData[presetDate].filter(function(e){return e.name!=="⚡ 時間ない時用トレーニング2";});
+  presetDone=false;
+  saveStorage();renderContent();
+}
+
+function setPresetDate(v){
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v)){
+    presetDate=v;
+    var exists=logData[v]&&logData[v].some(function(e){return e.name==="⚡ 時間ない時用トレーニング2";});
+    presetDone=exists;
+  }
+  renderContent();
 }
 
 function selEx(id){sel=sel===id?null:id;ferr="";renderContent();}
