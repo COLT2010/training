@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
@@ -36,6 +35,7 @@ select option{background:#1e1e3f;color:#fff}
 .btn-pur{background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;padding:7px 18px;border-radius:9px;font-size:12px;font-weight:700;border:none}
 .btn-grn{background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;padding:7px 16px;border-radius:9px;font-size:12px;font-weight:700;border:none}
 .btn-cyn{background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:#67e8f9;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:700}
+.btn-org{background:rgba(251,146,60,0.15);border:1px solid rgba(251,146,60,0.3);color:#fb923c;border-radius:9px;padding:7px 13px;font-size:12px;font-weight:700}
 .ex-btn{padding:4px 9px;border-radius:18px;font-size:11px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);color:#94a3b8;margin-bottom:5px}
 .ex-btn.sel{border-color:#7c3aed;background:rgba(124,58,237,0.3);color:#c4b5fd;font-weight:700}
 .log-row{background:rgba(255,255,255,0.04);border:1px solid rgba(139,92,246,0.2);border-radius:11px;padding:10px 12px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
@@ -49,12 +49,15 @@ select option{background:#1e1e3f;color:#fff}
 .bar{height:100%;border-radius:8px;transition:width 0.6s}
 .row2{display:flex;gap:8px}
 .row2>*{flex:1}
+.row3{display:flex;gap:8px}
+.row3>*{flex:1}
 .cform{background:rgba(167,139,250,0.08);border:1px solid rgba(167,139,250,0.25);border-radius:11px;padding:12px;margin-bottom:12px}
 .barchart{display:flex;align-items:flex-end;gap:5px;height:110px;padding-bottom:18px}
 .barcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
 .barval{font-size:8px;font-weight:700}
 .barrect{width:100%;border-radius:3px 3px 0 0}
 .barday{font-size:8px;color:#64748b}
+.date-inp{background:rgba(255,255,255,0.06);border:1px solid rgba(139,92,246,0.3);border-radius:7px;color:#fff;padding:6px 9px;font-size:13px;width:100%}
 </style>
 </head>
 <body>
@@ -65,7 +68,6 @@ select option{background:#1e1e3f;color:#fff}
     <div id="kcal-badge">🔥 0 kcal</div>
   </div>
 </div>
-
 <div id="timer-banner">
   <div id="timer-inner">
     <div>
@@ -78,7 +80,6 @@ select option{background:#1e1e3f;color:#fff}
     </div>
   </div>
 </div>
-
 <div id="tabs">
   <button class="tab-btn active" onclick="setTab('preset')">⚡ メニュー</button>
   <button class="tab-btn" onclick="setTab('record')">📝 記録</button>
@@ -86,11 +87,10 @@ select option{background:#1e1e3f;color:#fff}
   <button class="tab-btn" onclick="setTab('history')">📅 履歴</button>
   <button class="tab-btn" onclick="setTab('graph')">📊 グラフ</button>
 </div>
-
 <div id="content"></div>
 
 <script>
-var SK="trlog_v5",CK="trcustom_v5",BW=73;
+var SK="trlog_v6",CK="trcustom_v6",BW=73;
 
 var BASE=[
   {id:"bench",name:"ベンチプレス",muscles:["胸"],met:5.0,unit:"kg"},
@@ -114,7 +114,7 @@ var BASE=[
   {id:"lunge",name:"ランジ",muscles:["脚","お尻"],met:4.5,unit:"rep"},
   {id:"pushup",name:"腕立て（ノーマル）",muscles:["胸","腕","肩"],met:5.0,unit:"rep"},
   {id:"pushup_low",name:"腕立て（胸筋下部）",muscles:["胸","腕"],met:5.0,unit:"rep"},
-  {id:"walking",name:"ウォーキング",muscles:["脚"],met:3.5,unit:"min"},
+  {id:"walking",name:"ウォーキング",muscles:["脚"],met:3.5,unit:"walk"},
   {id:"running",name:"ランニング",muscles:["脚"],met:9.0,unit:"min"}
 ];
 
@@ -140,6 +140,7 @@ var custom=[];
 var logData={};
 var sel=null;
 var fSets="3",fReps="10",fWt="0",fMins="30",fSecs="45";
+var fSpeed="5",fIncline="0",fWalkMins="30";
 var ferr="";
 var showCForm=false;
 var cName="",cMet="5",cUnit="回",cMus=[],cErr="";
@@ -148,12 +149,19 @@ var presetDone=false;
 var vDate="";
 var timerSec=0,timerMax=0,timerLabel="",timerRunning=false;
 var timerIv=null;
+var recordDate="";
+var showPastInput=false;
 
-function todayKey(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
+function todayKey(){
+  var d=new Date();
+  return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);
+}
+
 function fmtDate(k){var p=k.split("-");return p[0]+"年"+parseInt(p[1])+"月"+parseInt(p[2])+"日";}
 function pad(n){return n<10?"0"+n:String(n);}
 function fmtTime(s){return pad(Math.floor(s/60))+":"+pad(s%60);}
 function vInt(v,mn,mx){var n=parseInt(v,10);return isFinite(n)&&n>=mn&&n<=mx?n:null;}
+function vFloat(v,mn,mx){var n=parseFloat(v);return isFinite(n)&&n>=mn&&n<=mx?n:null;}
 
 function allExs(){return BASE.concat(custom);}
 function validIds(){var s=new Set();allExs().forEach(function(e){s.add(e.id);});return s;}
@@ -163,6 +171,21 @@ function stepCal(st){
   if(!ex)return 0;
   if(st.sec>0)return Math.round(ex.met*BW*(st.sec*st.sets)/3600);
   return Math.round((st.weight||BW)*(st.reps||0)*(st.sets||1)*ex.met*0.0012);
+}
+
+// ウォーキングMET計算（速度・傾斜考慮）
+function walkMet(speed,incline){
+  // 基本MET（速度km/h基準）
+  var baseMet=2.5;
+  if(speed>=3)baseMet=2.8;
+  if(speed>=4)baseMet=3.5;
+  if(speed>=5)baseMet=3.8;
+  if(speed>=6)baseMet=5.0;
+  if(speed>=7)baseMet=6.0;
+  if(speed>=8)baseMet=8.3;
+  // 傾斜補正（1%ごとに約0.5MET追加）
+  baseMet+=incline*0.5;
+  return baseMet;
 }
 
 function loadStorage(){
@@ -184,6 +207,7 @@ function loadStorage(){
     }
   }catch(e){}
   vDate=todayKey();
+  recordDate=todayKey();
 }
 
 function saveStorage(){
@@ -191,6 +215,7 @@ function saveStorage(){
   try{localStorage.setItem(CK,JSON.stringify(custom));}catch(e){}
 }
 
+function currentLog(){return logData[recordDate]||[];}
 function todayLog(){return logData[todayKey()]||[];}
 function totalCal(){return todayLog().reduce(function(s,e){return s+e.calories;},0);}
 
@@ -221,8 +246,7 @@ function updateTimerUI(){
   document.getElementById("timer-num").style.color=col;
   document.getElementById("timer-bar").style.width=pct+"%";
   document.getElementById("timer-label").textContent=timerSec===0?"✅ 完了！":"⏱ "+timerLabel;
-  if(timerSec===0){document.getElementById("timer-banner").style.background="rgba(34,197,94,0.2)";}
-  else{document.getElementById("timer-banner").style.background="rgba(124,58,237,0.25)";}
+  document.getElementById("timer-banner").style.background=timerSec===0?"rgba(34,197,94,0.2)":"rgba(124,58,237,0.25)";
 }
 
 function stopTimer(){
@@ -232,12 +256,12 @@ function stopTimer(){
 
 function tagHTML(m){
   var c=MC[m]||"#888";
-  return '<span class="tag" style="background:'+c+'33;color:'+c+';border:1px solid '+c+'55">'+( ME[m]||"🏋️")+" "+m+"</span>";
+  return '<span class="tag" style="background:'+c+'33;color:'+c+';border:1px solid '+c+'55">'+(ME[m]||"🏋️")+" "+m+"</span>";
 }
 
-function logRowHTML(e,removable){
+function logRowHTML(e,removable,dateKey){
   var tags=e.muscles.map(tagHTML).join("");
-  var removeBtn=removable?'<button onclick="removeEntry('+e.id+')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:7px;padding:2px 7px;font-size:10px;margin-top:4px">削除</button>':"";
+  var removeBtn=removable?'<button onclick="removeEntry('+e.id+',\''+dateKey+'\')" style="background:rgba(239,68,68,0.15);border:1px solid rgba(239,68,68,0.3);color:#f87171;border-radius:7px;padding:2px 7px;font-size:10px;margin-top:4px">削除</button>':"";
   return '<div class="log-row">'
     +'<div style="flex:1">'
     +'<div style="font-weight:700;font-size:12px;margin-bottom:2px">'+e.name+'</div>'
@@ -279,9 +303,7 @@ function renderContent(){
         +'<div style="color:#fbbf24;font-weight:700;font-size:11px;margin-bottom:4px">'+cal+' kcal</div>'
         +'<button onclick="toggleStep('+i+')" style="display:block;margin-bottom:4px;background:'+(isA?"rgba(124,58,237,0.4)":"rgba(255,255,255,0.06)")+';border:1px solid '+(isA?"#7c3aed":"rgba(255,255,255,0.15)")+';color:'+(isA?"#c4b5fd":"#94a3b8")+';border-radius:7px;padding:2px 9px;font-size:10px;font-weight:700;width:100%">'+(isA?"✓ 実施中":"開始")+'</button>'
         +'<button onclick="startTimer(60,\'インターバル (種目'+(i+1)+'後)\')" style="display:block;background:rgba(6,182,212,0.15);border:1px solid rgba(6,182,212,0.3);color:#67e8f9;border-radius:7px;padding:2px 9px;font-size:10px;width:100%">⏱ 休憩</button>'
-        +'</div>'
-        +'</div>'
-        +'</div>';
+        +'</div></div></div>';
     });
 
     html+='<div style="border-top:1px solid rgba(255,255,255,0.08);padding-top:10px;margin-top:3px;display:flex;justify-content:space-between;align-items:center">'
@@ -301,6 +323,17 @@ function renderContent(){
   }
 
   if(tab==="record"){
+    // 記録日付選択
+    var isToday=recordDate===todayKey();
+    html+='<div class="card" style="border-color:rgba(251,146,60,0.3)">'
+      +'<div class="stitle">📅 記録する日付</div>'
+      +'<div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">'
+      +'<input type="date" class="date-inp" value="'+recordDate+'" onchange="setRecordDate(this.value)" style="flex:1">'
+      +'<button onclick="setRecordDate(\''+todayKey()+'\')" style="background:'+(isToday?"rgba(34,197,94,0.2)":"rgba(255,255,255,0.06)")+';border:1px solid '+(isToday?"rgba(34,197,94,0.4)":"rgba(255,255,255,0.1)")+';color:'+(isToday?"#86efac":"#94a3b8")+';border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700">今日</button>'
+      +'</div>'
+      +(isToday?'<div style="font-size:10px;color:#22c55e">✅ 今日の記録</div>':'<div style="font-size:10px;color:#fb923c">⚠️ 過去の日付に記録中: '+fmtDate(recordDate)+'</div>')
+      +'</div>';
+
     html+='<div class="card">'
       +'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:9px">'
       +'<div class="stitle" style="margin:0">＋ エクササイズを追加</div>'
@@ -350,37 +383,56 @@ function renderContent(){
 
     var selEx2=allExs().find(function(e){return e.id===sel;});
     if(selEx2){
+      var isWalk=selEx2.unit==="walk";
       var isSec=selEx2.unit==="sec";
       var isMin=selEx2.unit==="min";
       var isKg=selEx2.unit==="kg";
       html+='<div style="border-top:1px solid rgba(255,255,255,0.1);padding-top:10px">'
-        +'<div style="font-size:11px;color:#c4b5fd;margin-bottom:9px;font-weight:700">'+selEx2.name+'</div>'
-        +'<div class="row2" style="margin-bottom:10px">';
-      if(isKg){html+='<div><label class="lbl">重量 (kg)</label><input class="inp" type="number" min="0" max="500" value="'+fWt+'" oninput="fWt=this.value"></div>';}
-      if(isMin){html+='<div><label class="lbl">時間 (分)</label><input class="inp" type="number" min="1" max="600" value="'+fMins+'" oninput="fMins=this.value"></div>';}
-      if(isSec){
-        html+='<div><label class="lbl">秒数</label><input class="inp" type="number" min="1" max="600" value="'+fSecs+'" oninput="fSecs=this.value"></div>';
-        html+='<div><label class="lbl">セット数</label><input class="inp" type="number" min="1" max="20" value="'+fSets+'" oninput="fSets=this.value"></div>';
+        +'<div style="font-size:11px;color:#c4b5fd;margin-bottom:9px;font-weight:700">'+selEx2.name+'</div>';
+
+      if(isWalk){
+        html+='<div class="row3" style="margin-bottom:8px">'
+          +'<div><label class="lbl">時速 (km/h)</label><input class="inp" type="number" min="1" max="15" step="0.5" value="'+fSpeed+'" oninput="fSpeed=this.value"></div>'
+          +'<div><label class="lbl">傾斜 (%)</label><input class="inp" type="number" min="0" max="30" step="0.5" value="'+fIncline+'" oninput="fIncline=this.value"></div>'
+          +'<div><label class="lbl">時間 (分)</label><input class="inp" type="number" min="1" max="600" value="'+fWalkMins+'" oninput="fWalkMins=this.value"></div>'
+          +'</div>'
+          +'<div style="font-size:10px;color:#64748b;margin-bottom:8px">MET: '+walkMet(parseFloat(fSpeed)||5,parseFloat(fIncline)||0).toFixed(1)+' / 消費約 '+Math.round(walkMet(parseFloat(fSpeed)||5,parseFloat(fIncline)||0)*BW*(parseInt(fWalkMins)||30)/60)+' kcal</div>';
+      }else{
+        html+='<div class="row2" style="margin-bottom:10px">';
+        if(isKg){html+='<div><label class="lbl">重量 (kg)</label><input class="inp" type="number" min="0" max="500" value="'+fWt+'" oninput="fWt=this.value"></div>';}
+        if(isMin){html+='<div><label class="lbl">時間 (分)</label><input class="inp" type="number" min="1" max="600" value="'+fMins+'" oninput="fMins=this.value"></div>';}
+        if(isSec){
+          html+='<div><label class="lbl">秒数</label><input class="inp" type="number" min="1" max="600" value="'+fSecs+'" oninput="fSecs=this.value"></div>';
+          html+='<div><label class="lbl">セット数</label><input class="inp" type="number" min="1" max="20" value="'+fSets+'" oninput="fSets=this.value"></div>';
+        }
+        if(!isMin&&!isSec&&!isKg){
+          html+='<div><label class="lbl">回数</label><input class="inp" type="number" min="1" max="500" value="'+fReps+'" oninput="fReps=this.value"></div>';
+          html+='<div><label class="lbl">セット数</label><input class="inp" type="number" min="1" max="20" value="'+fSets+'" oninput="fSets=this.value"></div>';
+        }
+        if(isKg){
+          html+='<div><label class="lbl">回数</label><input class="inp" type="number" min="1" max="500" value="'+fReps+'" oninput="fReps=this.value"></div>';
+          html+='</div><div class="row2" style="margin-bottom:10px">';
+          html+='<div><label class="lbl">セット数</label><input class="inp" type="number" min="1" max="20" value="'+fSets+'" oninput="fSets=this.value"></div>';
+          html+='<div></div>';
+        }
+        html+='</div>';
       }
-      if(!isMin&&!isSec){
-        html+='<div><label class="lbl">回数</label><input class="inp" type="number" min="1" max="500" value="'+fReps+'" oninput="fReps=this.value"></div>';
-        html+='<div><label class="lbl">セット数</label><input class="inp" type="number" min="1" max="20" value="'+fSets+'" oninput="fSets=this.value"></div>';
-      }
-      html+='</div>';
+
       if(ferr){html+='<div class="err">⚠️ '+ferr+'</div>';}
       html+='<div style="display:flex;justify-content:flex-end"><button class="btn-pur" onclick="addEntry()">追加 ✓</button></div></div>';
     }
     html+='</div>';
 
-    var tlog=todayLog();
-    html+='<div style="font-size:11px;color:#64748b;margin-bottom:7px">今日のログ'+(tlog.length>0?" ("+tlog.length+"種目)":"")+'</div>';
-    if(tlog.length===0){html+='<div class="empty">まだ記録がありません</div>';}
-    tlog.forEach(function(e){html+=logRowHTML(e,true);});
-    if(tlog.length>0){
-      var tc=totalCal();
+    var clog=currentLog();
+    var isRdToday=recordDate===todayKey();
+    html+='<div style="font-size:11px;color:#64748b;margin-bottom:7px">'+(isRdToday?"今日":"【"+fmtDate(recordDate)+"】")+'のログ'+(clog.length>0?" ("+clog.length+"種目)":"")+'</div>';
+    if(clog.length===0){html+='<div class="empty">まだ記録がありません</div>';}
+    clog.forEach(function(e){html+=logRowHTML(e,true,recordDate);});
+    if(clog.length>0){
+      var cc=clog.reduce(function(s,e){return s+e.calories;},0);
       html+='<div style="background:linear-gradient(135deg,rgba(124,58,237,0.2),rgba(79,70,229,0.2));border:1px solid rgba(139,92,246,0.4);border-radius:12px;padding:12px;margin-top:7px;display:flex;justify-content:space-between;align-items:center">'
-        +'<div><div style="font-size:10px;color:#a78bfa">本日の合計消費</div><div style="font-size:22px;font-weight:900;color:#fbbf24">'+tc+' <span style="font-size:11px;color:#94a3b8">kcal</span></div></div>'
-        +'<div style="text-align:right;font-size:10px;color:#64748b"><div>体重 73kg 基準</div><div style="color:#94a3b8;margin-top:2px">💧 '+Math.round(tc*1.5)+' ml目安</div></div>'
+        +'<div><div style="font-size:10px;color:#a78bfa">合計消費</div><div style="font-size:22px;font-weight:900;color:#fbbf24">'+cc+' <span style="font-size:11px;color:#94a3b8">kcal</span></div></div>'
+        +'<div style="text-align:right;font-size:10px;color:#64748b"><div>体重 73kg 基準</div><div style="color:#94a3b8;margin-top:2px">💧 '+Math.round(cc*1.5)+' ml目安</div></div>'
         +'</div>';
     }
   }
@@ -420,7 +472,7 @@ function renderContent(){
       html+='<div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:9px">📅 '+(vDate===todayKey()?"今日":fmtDate(vDate))+'</div>';
       if(vlog.length===0){html+='<div class="empty">この日の記録はありません</div>';}
       else{
-        vlog.forEach(function(e){html+=logRowHTML(e,false);});
+        vlog.forEach(function(e){html+=logRowHTML(e,false,vDate);});
         var vCal=vlog.reduce(function(s,e){return s+e.calories;},0);
         html+='<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:11px;padding:9px 13px;margin-top:7px;display:flex;justify-content:space-between">'
           +'<span style="font-size:12px;color:#94a3b8">合計消費</span>'
@@ -433,23 +485,18 @@ function renderContent(){
   if(tab==="graph"){
     var wData=[];
     for(var i=6;i>=0;i--){
-      var d=new Date();d.setDate(d.getDate()-i);
-      var k=d.toISOString().slice(0,10);
-      var lg=logData[k]||[];
-      wData.push({day:(d.getMonth()+1)+"/"+(d.getDate()),cal:lg.reduce(function(s,e){return s+e.calories;},0),trained:lg.length>0});
+      var dd=new Date();dd.setDate(dd.getDate()-i);
+      var kk=dd.getFullYear()+"-"+("0"+(dd.getMonth()+1)).slice(-2)+"-"+("0"+dd.getDate()).slice(-2);
+      var lg=logData[kk]||[];
+      wData.push({day:(dd.getMonth()+1)+"/"+(dd.getDate()),cal:lg.reduce(function(s,e){return s+e.calories;},0),trained:lg.length>0});
     }
     var maxW=Math.max.apply(null,wData.map(function(d){return d.cal;}));
     if(maxW<1)maxW=1;
-
     html+='<div class="card"><div class="stitle">📅 直近7日間の消費カロリー</div><div class="barchart">';
     wData.forEach(function(d){
       var h=d.cal>0?Math.max(8,Math.round((d.cal/maxW)*85)):3;
       var col=d.trained?"linear-gradient(180deg,#7c3aed,#4f46e5)":"rgba(255,255,255,0.08)";
-      html+='<div class="barcol">'
-        +'<div class="barval" style="color:#fbbf24">'+(d.cal>0?d.cal:"")+'</div>'
-        +'<div class="barrect" style="height:'+h+'px;background:'+col+'"></div>'
-        +'<div class="barday">'+d.day+'</div>'
-        +'</div>';
+      html+='<div class="barcol"><div class="barval" style="color:#fbbf24">'+(d.cal>0?d.cal:"")+'</div><div class="barrect" style="height:'+h+'px;background:'+col+'"></div><div class="barday">'+d.day+'</div></div>';
     });
     html+='</div></div>';
 
@@ -466,14 +513,12 @@ function renderContent(){
       var maxS=Math.max.apply(null,mData.map(function(d){return d.sessions;}));
       var maxMC=Math.max.apply(null,mData.map(function(d){return d.calories;}));
       if(maxS<1)maxS=1;if(maxMC<1)maxMC=1;
-
       html+='<div class="card"><div class="stitle">📈 月別セッション数</div><div class="barchart" style="height:90px">';
       mData.forEach(function(d){
         var h=Math.max(5,Math.round((d.sessions/maxS)*65));
         html+='<div class="barcol"><div class="barval" style="color:#c4b5fd">'+d.sessions+'</div><div class="barrect" style="height:'+h+'px;background:linear-gradient(180deg,#7c3aed,#4f46e5)"></div><div class="barday">'+d.month+'</div></div>';
       });
       html+='</div></div>';
-
       html+='<div class="card"><div class="stitle">🔥 月別消費カロリー</div><div class="barchart" style="height:90px">';
       mData.forEach(function(d){
         var h=Math.max(5,Math.round((d.calories/maxMC)*65));
@@ -486,6 +531,11 @@ function renderContent(){
   }
 
   document.getElementById("content").innerHTML=html;
+}
+
+function setRecordDate(v){
+  if(/^\d{4}-\d{2}-\d{2}$/.test(v))recordDate=v;
+  renderContent();
 }
 
 function toggleStep(i){activeStep=activeStep===i?null:i;renderContent();}
@@ -506,8 +556,17 @@ function addEntry(){
   ferr="";
   var ex=allExs().find(function(e){return e.id===sel;});
   if(!ex){ferr="種目を選んでください";renderContent();return;}
-  var cal,detail,rN,sN,wN,mN,scN;
-  if(ex.unit==="min"){
+  var cal,detail,rN,sN,wN,mN,scN,spN,inN,wmN;
+
+  if(ex.unit==="walk"){
+    spN=vFloat(fSpeed,1,15);inN=vFloat(fIncline,0,30);wmN=vInt(fWalkMins,1,600);
+    if(!spN){ferr="時速は1〜15km/hで入力してください";renderContent();return;}
+    if(inN===null){ferr="傾斜は0〜30%で入力してください";renderContent();return;}
+    if(!wmN){ferr="時間は1〜600分で入力してください";renderContent();return;}
+    var met=walkMet(spN,inN);
+    cal=Math.round(met*BW*wmN/60);
+    detail=wmN+"分 / "+spN+"km/h / 傾斜"+inN+"%";
+  }else if(ex.unit==="min"){
     mN=vInt(fMins,1,600);if(!mN){ferr="1〜600分で入力してください";renderContent();return;}
     cal=Math.round(ex.met*BW*mN/60);detail=mN+"分";
   }else if(ex.unit==="sec"){
@@ -527,18 +586,17 @@ function addEntry(){
       cal=Math.round(BW*rN*sN*ex.met*0.0012);detail=rN+"回 × "+sN+"セット";
     }
   }
+
   var eff=Math.min(40,Math.round(((rN||1)*(sN||1))/3));
   var entry={id:Date.now(),exId:ex.id,name:ex.name,muscles:ex.muscles,calories:cal,effect:eff,detail:detail};
-  var k=todayKey();
-  if(!logData[k])logData[k]=[];
-  logData[k].push(entry);
+  if(!logData[recordDate])logData[recordDate]=[];
+  logData[recordDate].push(entry);
   sel=null;
   saveStorage();renderContent();
 }
 
-function removeEntry(id){
-  var k=todayKey();
-  if(logData[k])logData[k]=logData[k].filter(function(e){return e.id!==id;});
+function removeEntry(id,dateKey){
+  if(logData[dateKey])logData[dateKey]=logData[dateKey].filter(function(e){return e.id!==id;});
   saveStorage();renderContent();
 }
 
@@ -574,6 +632,5 @@ function setVDate(d){vDate=d;renderContent();}
 loadStorage();
 renderContent();
 </script>
-
 </body>
 </html>
