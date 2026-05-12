@@ -149,7 +149,7 @@ var vDate="";
 var timerSec=0,timerMax=0,timerLabel="",timerRunning=false;
 var timerIv=null;
 
-function todayKey(){return new Date().toISOString().slice(0,10);}
+function todayKey(){var d=new Date();return d.getFullYear()+"-"+("0"+(d.getMonth()+1)).slice(-2)+"-"+("0"+d.getDate()).slice(-2);}
 function fmtDate(k){var p=k.split("-");return p[0]+"年"+parseInt(p[1])+"月"+parseInt(p[2])+"日";}
 function pad(n){return n<10?"0"+n:String(n);}
 function fmtTime(s){return pad(Math.floor(s/60))+":"+pad(s%60);}
