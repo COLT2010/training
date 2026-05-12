@@ -288,7 +288,7 @@ function renderContent(){
     html+='<div class="card" style="border-color:rgba(251,146,60,0.3);margin-bottom:10px">'
       +'<div class="stitle">📅 記録する日付</div>'
       +'<div style="display:flex;gap:8px;align-items:center">'
-      +'<input type="date" class="date-inp" value="'+presetDate+'" onchange="setPresetDate(this.value)" style="flex:1">'
+      +'<input type="date" class="date-inp" value="'+presetDate+'" oninput="setPresetDate(this.value)" onchange="setPresetDate(this.value)" style="flex:1">'
       +'<button onclick="setPresetDate(\''+todayKey()+'\')" style="background:'+(presetIsToday?"rgba(34,197,94,0.2)":"rgba(255,255,255,0.06)")+';border:1px solid '+(presetIsToday?"rgba(34,197,94,0.4)":"rgba(255,255,255,0.1)")+';color:'+(presetIsToday?"#86efac":"#94a3b8")+';border-radius:7px;padding:5px 10px;font-size:11px;font-weight:700">今日</button>'
       +'</div>'
       +(presetIsToday?'':'<div style="font-size:10px;color:#fb923c;margin-top:6px">⚠️ 過去の日付に記録: '+fmtDate(presetDate)+'</div>')
@@ -565,18 +565,21 @@ function finishPreset(){
 }
 
 function cancelPreset(){
-  if(!logData[presetDate])return;
-  logData[presetDate]=logData[presetDate].filter(function(e){return e.name!=="⚡ 時間ない時用トレーニング2";});
+  if(logData[presetDate]){
+    logData[presetDate]=logData[presetDate].filter(function(e){return e.name!=="⚡ 時間ない時用トレーニング2";});
+  }
   presetDone=false;
+  activeStep=null;
   saveStorage();renderContent();
 }
 
 function setPresetDate(v){
   if(/^\d{4}-\d{2}-\d{2}$/.test(v)){
     presetDate=v;
-    var exists=logData[v]&&logData[v].some(function(e){return e.name==="⚡ 時間ない時用トレーニング2";});
-    presetDone=exists;
   }
+  // その日にプリセット記録があるか確認
+  var exists=logData[presetDate]&&logData[presetDate].some(function(e){return e.name==="⚡ 時間ない時用トレーニング2";});
+  presetDone=exists;
   renderContent();
 }
 
