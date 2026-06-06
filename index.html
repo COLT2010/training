@@ -114,6 +114,22 @@ var BASE=[
   {id:"lunge",name:"ランジ",muscles:["脚","お尻"],met:4.5,unit:"rep"},
   {id:"pushup",name:"腕立て（ノーマル）",muscles:["胸","腕","肩"],met:5.0,unit:"rep"},
   {id:"pushup_low",name:"腕立て（胸筋下部）",muscles:["胸","腕"],met:5.0,unit:"rep"},
+  {id:"pushup_knee",name:"腕立て膝付き（ノーマル）",muscles:["胸","腕","肩"],met:3.5,unit:"rep"},
+  {id:"pushup_knee_low",name:"腕立て膝付き（胸筋下部）",muscles:["胸","腕"],met:3.5,unit:"rep"},
+  {id:"pushup_knee",name:"腕立て（膝付き）",muscles:["胸","腕","肩"],met:3.5,unit:"rep"},
+  {id:"pushup_knee",name:"腕立て膝付き（ノーマル）",muscles:["胸","腕","肩"],met:3.5,unit:"rep"},
+  {id:"pushup_low_knee",name:"腕立て膝付き（胸筋下部）",muscles:["胸","腕"],met:3.5,unit:"rep"},
+  {id:"stretch_sroll_out",name:"肩回し外（手を横に伸ばして）",muscles:["肩"],met:2.5,unit:"rep"},
+  {id:"stretch_sroll_in",name:"肩回し内（手を横に伸ばして）",muscles:["肩"],met:2.5,unit:"rep"},
+  {id:"stretch_elbow_out",name:"肩甲骨周辺（ひじ曲げて外回し）",muscles:["肩","背中"],met:2.5,unit:"rep"},
+  {id:"stretch_elbow_in",name:"肩甲骨周辺（ひじ曲げて内回し）",muscles:["肩","背中"],met:2.5,unit:"rep"},
+  {id:"stretch_side",name:"横曲げ（脇腹）",muscles:["腹"],met:2.5,unit:"rep"},
+  {id:"stretch_toe",name:"トゥータッチ（蹴り上げ）",muscles:["脚","腹"],met:3.5,unit:"rep"},
+  {id:"stretch_chest",name:"腕を広げて閉じる（大胸筋）",muscles:["胸","肩"],met:2.5,unit:"rep"},
+  {id:"stretch_hip_fb",name:"股関節（前後振り）",muscles:["脚","お尻"],met:3.0,unit:"rep"},
+  {id:"stretch_hip_lr",name:"股関節（左右振り）",muscles:["脚","お尻"],met:3.0,unit:"rep"},
+  {id:"stretch_hip_cir",name:"股関節（外回し）",muscles:["脚","お尻"],met:3.0,unit:"rep"},
+  {id:"squat_bw",name:"スクワット（自重）",muscles:["脚","お尻"],met:5.0,unit:"rep"},
   {id:"rotary_l",name:"ロータリートルソー（左）",muscles:["腹","お尻"],met:4.0,unit:"kg"},
   {id:"rotary_r",name:"ロータリートルソー（右）",muscles:["腹","お尻"],met:4.0,unit:"kg"},
   {id:"rotary_lr",name:"ロータリートルソー（左右交互）",muscles:["腹","お尻"],met:4.0,unit:"kg"},
@@ -490,7 +506,7 @@ function renderContent(){
       html+='<div style="font-size:12px;font-weight:700;color:#a78bfa;margin-bottom:9px">📅 '+(vDate===todayKey()?"今日":fmtDate(vDate))+'</div>';
       if(vlog.length===0){html+='<div class="empty">この日の記録はありません</div>';}
       else{
-        vlog.forEach(function(e){html+=logRowHTML(e,false,vDate);});
+        vlog.forEach(function(e){html+=logRowHTML(e,true,vDate);});
         var vCal=vlog.reduce(function(s,e){return s+e.calories;},0);
         html+='<div style="background:rgba(124,58,237,0.15);border:1px solid rgba(139,92,246,0.3);border-radius:11px;padding:9px 13px;margin-top:7px;display:flex;justify-content:space-between">'
           +'<span style="font-size:12px;color:#94a3b8">合計消費</span>'
